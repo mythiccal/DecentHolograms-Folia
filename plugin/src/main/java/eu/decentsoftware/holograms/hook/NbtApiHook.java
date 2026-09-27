@@ -4,7 +4,7 @@ import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBTList;
 import de.tr7zw.changeme.nbtapi.utils.DataFixerUtil;
-import eu.decentsoftware.holograms.api.utils.Log;
+import eu.decentsoftware.holograms.logging.Log;
 import eu.decentsoftware.holograms.api.utils.PAPI;
 import eu.decentsoftware.holograms.api.utils.reflect.Version;
 import lombok.experimental.UtilityClass;
@@ -36,10 +36,9 @@ public class NbtApiHook {
     }
 
     public static ItemStack applyNbtDataToItemStack(ItemStack itemStack, String nbt, Player player) {
-        if (!loadedSuccessfully) {
-            return itemStack;
+        if (itemStack == null) {
+            return null;
         }
-
         try {
             ReadWriteNBT originalNBT = NBT.itemStackToNBT(itemStack); // Used later for merge.
             ReadWriteNBT modifiableNBT = NBT.itemStackToNBT(itemStack);
@@ -61,34 +60,47 @@ public class NbtApiHook {
 
             return NBT.itemStackFromNBT(modifiableNBT);
         } catch (Exception ex) {
+            if (!loadedSuccessfully) {
+                // Sometimes the NBTAPI can apply NBT even if it fails to load successfully.
+                // When it doesn't yet explicitly support a new Minecraft version, for example.
+                return itemStack;
+            }
             Log.warn("Failed to apply NBT Data to Item: %s", ex, nbt);
             return itemStack;
         }
     }
 
     public static float extractCustomModelData(ItemStack itemStack) {
-        if (!loadedSuccessfully) {
+        if (itemStack == null) {
             return 0f;
         }
+        try {
+            ReadWriteNBT nbtItem = NBT.itemStackToNBT(itemStack);
+            float customModelData;
+            if (Version.afterOrEqual(Version.v1_21_R3)) {
+                // New structure components:{custom_model_data={floats[...]}} since 1.21.4
+                ReadWriteNBTList<Float> floats = nbtItem.getOrCreateCompound("components")
+                        .getOrCreateCompound("minecraft:custom_model_data")
+                        .getFloatList("floats");
 
-        ReadWriteNBT nbtItem = NBT.itemStackToNBT(itemStack);
-        float customModelData;
-        if (Version.afterOrEqual(Version.v1_21_R3)) {
-            // New structure components:{custom_model_data={floats[...]}} since 1.21.4
-            ReadWriteNBTList<Float> floats = nbtItem.getOrCreateCompound("components")
-                    .getOrCreateCompound("minecraft:custom_model_data")
-                    .getFloatList("floats");
-
-            customModelData = floats.isEmpty() ? 0.0F : floats.get(0);
-        } else if (Version.afterOrEqual(Version.v1_20_R4)) {
-            // components contains item tags in 1.20.5+
-            customModelData = nbtItem.getOrCreateCompound("components")
-                    .getInteger("minecraft:custom_model_data");
-        } else {
-            // 1.20.4 and older have CMD under "tag".
-            customModelData = nbtItem.getOrCreateCompound("tag")
-                    .getInteger("CustomModelData");
+                customModelData = floats.isEmpty() ? 0.0F : floats.get(0);
+            } else if (Version.afterOrEqual(Version.v1_20_R4)) {
+                // components contains item tags in 1.20.5+
+                customModelData = nbtItem.getOrCreateCompound("components")
+                        .getInteger("minecraft:custom_model_data");
+            } else {
+                // 1.20.4 and older have CMD under "tag".
+                customModelData = nbtItem.getOrCreateCompound("tag")
+                        .getInteger("CustomModelData");
+            }
+            return customModelData;
+        } catch (Exception e) {
+            if (!loadedSuccessfully) {
+                // Sometimes the NBTAPI can extract CMD even if it fails to load successfully.
+                // When it doesn't yet explicitly support a new Minecraft version, for example.
+                return 0f;
+            }
+            throw e;
         }
-        return customModelData;
     }
 }

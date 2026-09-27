@@ -4,17 +4,19 @@ import com.google.common.collect.ImmutableMap;
 import eu.decentsoftware.holograms.api.utils.config.CFG;
 import eu.decentsoftware.holograms.api.utils.config.FileConfig;
 import eu.decentsoftware.holograms.api.utils.config.Key;
-import lombok.experimental.UtilityClass;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings({"java:S1444", "java:S3008"})
-@UtilityClass
-public class Settings {
+public final class Settings {
 
-    private static final DecentHolograms DECENT_HOLOGRAMS = DecentHologramsAPI.get();
+    private Settings() {
+        throw new UnsupportedOperationException("Cannot instantiate utility class");
+    }
+
     private static FileConfig config;
 
     @Key("update-checker")
@@ -80,15 +82,25 @@ public class Settings {
             .put("[|]", "\u23B9")
             .build();
 
+    /**
+     * Set this to true if you want Display Holograms to appear at the player's eye level.
+     *
+     * <p>When enabled, Display Holograms will be positioned at the player's eye height when created or moved.</p>
+     *
+     * <p>When disabled, Display holograms will be positioned at the player's feet height when created or moved (default).</p>
+     */
+    @Key("displays-eye-level-positioning")
+    public static boolean DISPLAYS_EYE_LEVEL_POSITIONING = false;
+
     // ========================================= //
 
     /**
      * Reload all Settings
      */
-    public static void reload() {
-        config = new FileConfig(DECENT_HOLOGRAMS.getPlugin(), "config.yml");
+    public static void reload(JavaPlugin plugin) {
+        config = new FileConfig(plugin, "config.yml");
 
-        CFG.load(DECENT_HOLOGRAMS.getPlugin(), Settings.class, config.getFile());
+        CFG.load(plugin, Settings.class, config.getFile());
 
         // -- Load custom replacements
         ConfigurationSection customReplacementsSection = config.getConfigurationSection("custom-replacements");

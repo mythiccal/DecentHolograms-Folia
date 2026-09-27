@@ -15,7 +15,12 @@ public class RainbowPattern implements Pattern {
      * @param string The String to which this pattern should be applied to
      * @return The new String with an applied pattern
      */
+    @Override
     public String process(String string) {
+        if (string.indexOf('<') == -1) {
+            return string;
+        }
+
         Matcher matcher = pattern.matcher(string);
         while (matcher.find()) {
             String saturation = matcher.group(1);
