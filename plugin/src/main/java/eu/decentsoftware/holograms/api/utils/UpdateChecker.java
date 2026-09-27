@@ -28,6 +28,6 @@ public class UpdateChecker {
             } catch (IOException exception) {
                 Log.info("Unable to check for updates: " + exception.getMessage());
             }
-        });*/
+        });
     }
 }

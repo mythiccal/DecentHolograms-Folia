@@ -24,7 +24,6 @@ import eu.decentsoftware.holograms.api.utils.items.DecentMaterial;
 import eu.decentsoftware.holograms.api.utils.location.LocationUtils;
 import eu.decentsoftware.holograms.api.utils.message.Message;
 import eu.decentsoftware.holograms.plugin.Validator;
-import eu.decentsoftware.holograms.api.utils.scheduler.S;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

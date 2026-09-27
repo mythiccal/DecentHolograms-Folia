@@ -1,6 +1,5 @@
 package eu.decentsoftware.holograms.plugin;
 
-import eu.decentsoftware.holograms.api.utils.scheduler.S;
 import eu.decentsoftware.holograms.api.DecentHolograms;
 import eu.decentsoftware.holograms.api.DecentHologramsAPI;
 import eu.decentsoftware.holograms.api.commands.CommandManager;
@@ -75,7 +74,6 @@ public class DecentHologramsPlugin extends JavaPlugin {
         }
 
         DecentHologramsAPI.onDisable();
-        S.shutdown();
     }
 
 }
